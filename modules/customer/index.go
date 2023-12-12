@@ -12,6 +12,8 @@ func GetModule() *Module {
 }
 
 func handleRoutes(api *Api) {
-	api.Get("/:id", api.GetCustomerByID)
-	api.Post("", api.GetCustomerByID)
+	api.Get("/:id", api.GetCustomers)
+	api.Get("/", api.GetCustomers)
+	api.Post("", api.CreateCustomer)
+	api.Delete("/:id", api.DeleteCustomer)
 }

@@ -9,8 +9,8 @@ import (
 	. "neema.co.za/rest/utils/models/_base"
 )
 
-func (this *Api) DeleteCustomer(c *fiber.Ctx) error {
-	var data Customer
+func (this *Api) DeleteInvoice(c *fiber.Ctx) error {
+	var data Invoice
 
 	id, err := strconv.Atoi(c.Params("id"))
 
@@ -21,7 +21,7 @@ func (this *Api) DeleteCustomer(c *fiber.Ctx) error {
 
 	data.ID = int64(id)
 
-	customer, err := this.Service.DeleteCustomer(&data)
+	customer, err := this.Service.DeleteInvoice(&data)
 	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
 	}
@@ -30,23 +30,23 @@ func (this *Api) DeleteCustomer(c *fiber.Ctx) error {
 
 }
 
-func (this *Api) CreateCustomer(c *fiber.Ctx) error {
-	var data Customer
+func (this *Api) CreateInvoice(c *fiber.Ctx) error {
+	var data Invoice
 	if err := c.BodyParser(&data); err != nil {
 		Logger.Error(err.Error())
 		return err
 	}
 
-	customer, err := this.Service.CreateCustomer(&data)
+	invoice, err := this.Service.CreateInvoice(&data)
 	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
 	}
 
-	return c.JSON(customer)
+	return c.JSON(invoice)
 
 }
 
-func (this *Api) GetCustomers(c *fiber.Ctx) error {
+func (this *Api) GetInvoices(c *fiber.Ctx) error {
 	var params Params
 
 	id, err := strconv.Atoi(c.Params("id"))
@@ -68,15 +68,15 @@ func (this *Api) GetCustomers(c *fiber.Ctx) error {
 	params.Page = page
 	params.Id = int64(id)
 
-	customer, customerPaginated, err := this.Service.GetCustomers(&params)
+	invoice, invoicePaginated, err := this.Service.GetInvoices(&params)
 	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
 	}
 
-	if customerPaginated != nil {
-		return c.JSON(customerPaginated)
+	if invoicePaginated != nil {
+		return c.JSON(invoicePaginated)
 	}
 
-	return c.JSON(customer)
+	return c.JSON(invoice)
 
 }

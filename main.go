@@ -5,6 +5,7 @@ import (
 	"github.com/joho/godotenv"
 
 	customerModule "neema.co.za/rest/modules/customer"
+	invoiceModule "neema.co.za/rest/modules/invoice"
 	userModule "neema.co.za/rest/modules/user"
 	App "neema.co.za/rest/utils/app"
 	. "neema.co.za/rest/utils/logger"
@@ -29,4 +30,5 @@ func main() {
 
 	routerV1.Mount("/users", userModule.GetModule().App)
 	routerV1.Mount("/customers", customerModule.GetModule().App)
+	routerV1.Mount("/invoices", invoiceModule.GetModule().App)
 }
