@@ -1,7 +1,11 @@
 package repository
 
 import (
+	"log"
 	"math"
+	"strconv"
+	"strings"
+	"time"
 
 	. "neema.co.za/rest/utils/logger"
 	. "neema.co.za/rest/utils/models"
@@ -22,18 +26,87 @@ func (r *Repository) DeleteInvoice(invoice *Invoice) (string, error) {
 	return "Invoice deleted successfully", nil
 }
 
-func (r *Repository) CreateInvoice(invoice *Invoice) (*Invoice, error) {
+func (r *Repository) CreateInvoice(invoiceWithRelation *InvoiceWithRelation) (*InvoiceWithRelation, error) {
 
-	_, err := r.Insert(invoice)
+	// make a transaction
+	session := r.NewSession()
+
+	defer r.Close()
+
+	invoice := invoiceWithRelation.Invoice
+
+	airBookings := invoiceWithRelation.AirBookings
+
+	invoice.Creation_date = time.Now()
+	invoice.Credit_apply = "0"
+	invoice.Balance = invoice.Amount
+	invoice.Base_amount = invoice.Amount
+	invoice.Tag = "1"
+	invoice.Status = "unpaid"
+
+	// add Begin() before any action
+	err := session.Begin()
 
 	if err != nil {
 		Logger.Error(err.Error())
 		return nil, err
 	}
 
+	// operation start
+	_, err = session.Insert(&invoice)
+
+	if err != nil {
+		session.Rollback()
+		Logger.Error(err.Error())
+		return nil, err
+	}
+
+	var IdList []string
+	// update id of customer into each airbooking items
+	for _, airbooairBooking := range airBookings {
+		IdList = append(IdList, strconv.FormatInt(airbooairBooking.ID, 10))
+	}
+
+	// for i := 0; i < len(airBookings); i++ {
+
+	// 	IdList[i] = strconv.FormatInt(airBookings[i].ID, 10)
+	// }
+
+	log.Println(&airBookings)
+
+	//_, err = session.Where("id IN (?)", IdList).Update(&airBookings)
+	query := "UPDATE air_booking SET status='invoiced', id_invoice='"
+	query += strconv.FormatInt(invoice.ID, 10)
+	query += "' "
+	query += "WHERE id IN (" + strings.Join(IdList, ",") + ") RETURNING " + strings.join(airBookings, ',')
+
+	log.Println(query)
+
+	a, err := session.Query(query)
+
+	log.Println(a)
+
+	if err != nil {
+		session.Rollback()
+		Logger.Error(err.Error())
+		return nil, err
+	}
+
 	Logger.Info("Invoice saved")
 
-	return invoice, nil
+	//update InvoiceWithRelation model datas
+
+	invoiceWithRelation.Invoice = invoice
+	invoiceWithRelation.AirBookings = airBookings
+
+	// add Commit() after all actions
+	err = session.Commit()
+	if err != nil {
+		Logger.Error(err.Error())
+		return nil, err
+	}
+
+	return invoiceWithRelation, nil
 }
 
 func (r *Repository) GetInvoices(params *Params) (*Invoice, *InvoicePaginated, error) {

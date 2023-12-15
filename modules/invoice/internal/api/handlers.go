@@ -31,7 +31,7 @@ func (this *Api) DeleteInvoice(c *fiber.Ctx) error {
 }
 
 func (this *Api) CreateInvoice(c *fiber.Ctx) error {
-	var data Invoice
+	var data InvoiceWithRelation
 	if err := c.BodyParser(&data); err != nil {
 		Logger.Error(err.Error())
 		return err

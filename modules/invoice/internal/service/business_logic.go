@@ -10,7 +10,7 @@ func (s *Service) GetInvoices(params *Params) (*Invoice, *InvoicePaginated, erro
 	return s.Repository.GetInvoices(params)
 }
 
-func (s *Service) CreateInvoice(Invoice *Invoice) (*Invoice, error) {
+func (s *Service) CreateInvoice(Invoice *InvoiceWithRelation) (*InvoiceWithRelation, error) {
 	return s.Repository.CreateInvoice(Invoice)
 }
 
