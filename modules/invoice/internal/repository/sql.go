@@ -1,7 +1,6 @@
 package repository
 
 import (
-	"log"
 	"math"
 	"strconv"
 	"strings"
@@ -11,6 +10,24 @@ import (
 	. "neema.co.za/rest/utils/models"
 	. "neema.co.za/rest/utils/models/_base"
 )
+
+// func getStructKeys() []string {
+
+// 	test := AirBooking{}
+// 	e := reflect.ValueOf(&test).Elem()
+
+// 	var structKeys []string
+
+// 	for i := 0; i < e.NumField(); i++ {
+// 		keyName := e.Type().Field(i).Name
+// 		structKeys = append(structKeys, keyName)
+// 		// varType := e.Type().Field(i).Type
+// 		// varValue := e.Field(i).Interface()
+// 		//fmt.Printf("%v %v %v\n", varName,varType,varValue)
+// 	}
+
+// 	return structKeys
+// }
 
 func (r *Repository) DeleteInvoice(invoice *Invoice) (string, error) {
 
@@ -31,11 +48,11 @@ func (r *Repository) CreateInvoice(invoiceWithRelation *InvoiceWithRelation) (*I
 	// make a transaction
 	session := r.NewSession()
 
-	defer r.Close()
+	//defer r.Close()
 
 	invoice := invoiceWithRelation.Invoice
 
-	airBookings := invoiceWithRelation.AirBookings
+	_airBookings := invoiceWithRelation.AirBookings
 
 	invoice.Creation_date = time.Now()
 	invoice.Credit_apply = "0"
@@ -63,28 +80,26 @@ func (r *Repository) CreateInvoice(invoiceWithRelation *InvoiceWithRelation) (*I
 
 	var IdList []string
 	// update id of customer into each airbooking items
-	for _, airbooairBooking := range airBookings {
+	for _, airbooairBooking := range _airBookings {
 		IdList = append(IdList, strconv.FormatInt(airbooairBooking.ID, 10))
 	}
 
-	// for i := 0; i < len(airBookings); i++ {
+	//structKeys := getStructKeys()
+	//columns := strings.ToLower(strings.Join(structKeys, ","))
+	ids := strings.Join(IdList, ",")
 
-	// 	IdList[i] = strconv.FormatInt(airBookings[i].ID, 10)
-	// }
-
-	log.Println(&airBookings)
-
-	//_, err = session.Where("id IN (?)", IdList).Update(&airBookings)
 	query := "UPDATE air_booking SET status='invoiced', id_invoice='"
 	query += strconv.FormatInt(invoice.ID, 10)
 	query += "' "
-	query += "WHERE id IN (" + strings.Join(IdList, ",") + ") RETURNING " + strings.join(airBookings, ',')
+	query += "WHERE id IN (" + ids + ") RETURNING *"
 
-	log.Println(query)
+	var airBookings []AirBooking
 
-	a, err := session.Query(query)
+	err = session.SQL(query).Find(&airBookings)
 
-	log.Println(a)
+	//log.Println(&airBookings)
+
+	//session.Rollback() // to unsave transaction
 
 	if err != nil {
 		session.Rollback()

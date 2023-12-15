@@ -40,13 +40,20 @@ func GetDatabase() *Database {
 			return
 		}
 		//defer db.Close()
+
 		coreDB := core.FromDB(db)
 		xengine, err := xorm.NewEngineWithDB("postgres", dbURL, coreDB) //??
+
+		xengine.DB().SetMaxOpenConns(1) // Définir le nombre maximal de connexions ouvertes
+		xengine.NewSession()
+
+		//session := xengine.NewSession()
+		//defer session.Close()
+
 		if err != nil {
 			log.Fatalf("Error creating XORM engine: %v", err)
 		}
 
-		//xengine.SetConnMaxLifetime(60000000000) // 60 seconds
 		xengine.SetConnMaxLifetime(60000000000) // 60 seconds
 
 		// Enable query logging
