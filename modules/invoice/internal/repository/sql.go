@@ -150,7 +150,7 @@ func (r *Repository) GetInvoices(params *Params) (*InvoiceWithRelation, *Invoice
 		return nil, nil, err
 	}
 
-	query := "SELECT * FROM invoice JOIN air_booking ON air_booking.id_invoice = invoice.id;"
+	query := "SELECT id,invoice_number,to_char(due_date,'yyyy-mm-dd') as due_date,amount::numeric,balance::numeric,credit_apply::numeric,(SELECT jsonb_agg(air_bookings) FROM(SELECT id,total_price::numeric,itinerary,traveler_name,ticket_number FROM air_booking WHERE id_invoice=invoice.id) AS air_bookings) AS air_bookings,(SELECT to_jsonb(customer) FROM (SELECT id,customer_name,account_number,alias,ab_key,state,tmc_client_number FROM customer WHERE id=invoice.id_customer) AS customer) AS customer FROM invoice WHERE tag = '3'::tags  ORDER BY invoice_number;"
 
 	err = r.SQL(query).Limit(params.PageSize, offset).Find(&invoiceWithRelation)
 
