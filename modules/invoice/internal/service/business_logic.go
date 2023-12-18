@@ -5,7 +5,7 @@ import (
 	. "neema.co.za/rest/utils/models/_base"
 )
 
-func (s *Service) GetInvoices(params *Params) (*Invoice, *InvoicePaginated, error) {
+func (s *Service) GetInvoices(params *Params) (*InvoiceWithRelation, *InvoicePaginated, error) {
 	// Business logic (if any)
 	return s.Repository.GetInvoices(params)
 }

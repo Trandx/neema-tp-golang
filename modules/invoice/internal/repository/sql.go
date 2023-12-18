@@ -55,7 +55,7 @@ func (r *Repository) CreateInvoice(invoiceWithRelation *InvoiceWithRelation) (*I
 	_airBookings := invoiceWithRelation.AirBookings
 
 	invoice.Creation_date = time.Now()
-	invoice.Credit_apply = "0"
+	invoice.Credit_apply = 0
 	invoice.Balance = invoice.Amount
 	invoice.Base_amount = invoice.Amount
 	invoice.Tag = "1"
@@ -110,7 +110,6 @@ func (r *Repository) CreateInvoice(invoiceWithRelation *InvoiceWithRelation) (*I
 	Logger.Info("Invoice saved")
 
 	//update InvoiceWithRelation model datas
-
 	invoiceWithRelation.Invoice = invoice
 	invoiceWithRelation.AirBookings = airBookings
 
@@ -124,23 +123,23 @@ func (r *Repository) CreateInvoice(invoiceWithRelation *InvoiceWithRelation) (*I
 	return invoiceWithRelation, nil
 }
 
-func (r *Repository) GetInvoices(params *Params) (*Invoice, *InvoicePaginated, error) {
-	var invoice []Invoice
+func (r *Repository) GetInvoices(params *Params) (*InvoiceWithRelation, *InvoicePaginated, error) {
+	var invoiceWithRelation []InvoiceWithRelation
 
 	if params.Id > 0 {
 
-		err := r.Find(&invoice, &Invoice{ID: params.Id})
+		err := r.Join("INNER", "air_booking", "air_booking.id_invoice = invoice.id").Join("INNER", "customer", "customer.id = invoice.id_customer").Find(&invoiceWithRelation, &Invoice{ID: params.Id})
 
 		if err != nil {
 			Logger.Error(err.Error())
 			return nil, nil, err
 		}
 
-		if len(invoice) == 0 {
+		if len(invoiceWithRelation) == 0 {
 			return nil, nil, nil
 		}
 
-		return &invoice[0], nil, nil
+		return &invoiceWithRelation[0], nil, nil
 	}
 
 	offset := (params.Page - 1) * params.PageSize
@@ -151,13 +150,17 @@ func (r *Repository) GetInvoices(params *Params) (*Invoice, *InvoicePaginated, e
 		return nil, nil, err
 	}
 
-	err = r.Limit(params.PageSize, offset).Find(&invoice)
+	query := "SELECT * FROM invoice JOIN air_booking ON air_booking.id_invoice = invoice.id;"
+
+	err = r.SQL(query).Limit(params.PageSize, offset).Find(&invoiceWithRelation)
+
+	// err = r.Limit(params.PageSize, offset).Join("ON ", "air_booking", "air_booking.id_invoice = invoice.id").Find(&invoiceWithRelation)
 	if err != nil {
 		return nil, nil, err
 	}
 	var invoicePaginated InvoicePaginated
 
-	invoicePaginated.Data = &invoice
+	invoicePaginated.Data = &invoiceWithRelation
 	invoicePaginated.Pagination.CurrentPage = int64(params.Page)
 	invoicePaginated.Pagination.Size = int64(params.PageSize)
 	invoicePaginated.Pagination.TotalPages = int64(totalPage)

@@ -31,4 +31,5 @@ func main() {
 	routerV1.Mount("/users", userModule.GetModule().App)
 	routerV1.Mount("/customers", customerModule.GetModule().App)
 	routerV1.Mount("/invoices", invoiceModule.GetModule().App)
+	routerV1.Mount("/payments", invoiceModule.GetModule().App)
 }

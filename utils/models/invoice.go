@@ -12,17 +12,17 @@ type Invoice struct {
 	Invoice_number string    `json:"invoice_number" xorm:"'invoice_number'"`
 	Status         string    `json:"status" xorm:"'status'"`
 	Due_date       string    `json:"due_date" xorm:"'due_date'"`
-	Amount         string    `json:"amount" xorm:"'amount'"`
-	Balance        string    `json:"balance" xorm:"'balance'"`
+	Amount         float64   `json:"amount" xorm:"'amount'"`
+	Balance        float64   `json:"balance" xorm:"'balance'"`
 	// Purchase_order     string    `json:"purchase_order" xorm:"'purchase_order'"`
 	// Customer_notes     string    `json:"customer_notes" xorm:"'customer_notes'"`
-	Terms int8 `json:"terms" xorm:"'terms'"`
+	// Terms int8 `json:"terms" xorm:"'terms'"`
 	// Terms_conditions   string    `json:"terms_conditions" xorm:"'terms_conditions'"`
-	Credit_apply string `json:"credit_apply" xorm:"'credit_apply'"`
+	Credit_apply float64 `json:"credit_apply" xorm:"'credit_apply'"`
 	// Rate               float64   `json:"rate" xorm:"'rate'"`
 	Net_amount string `json:"net_amount" xorm:"'net_amount'"`
 	// Tax_amount         string    `json:"tax_amount" xorm:"'tax_amount'"`
-	Base_amount string `json:"base_amount" xorm:"'base_amount'"`
+	Base_amount float64 `json:"base_amount" xorm:"'base_amount'"`
 	// Slug               int64     `json:"slug" xorm:"'slug'"`
 	Id_customer int64 `json:"id_customer" xorm:"'id_customer'"`
 	// Credit_used        string    `json:"credit_used" xorm:"'credit_used'"`
@@ -37,13 +37,14 @@ type Invoice struct {
 }
 
 type InvoicePaginated struct {
-	Data       *[]Invoice `json:"data"`
-	Pagination Pagination `json:"pagination"`
+	Data       *[]InvoiceWithRelation `json:"data"`
+	Pagination Pagination             `json:"pagination"`
 }
 
 type InvoiceWithRelation struct {
 	Invoice
-	AirBookings []AirBooking `json:"air_bookings"`
+	AirBookings []AirBooking `json:"air_bookings" xorm:"'air_bookings'"`
+	Customer    *Customer    `json:"customer" xorm:"'customer'"`
 }
 
 func (Invoice) TableName() string {
